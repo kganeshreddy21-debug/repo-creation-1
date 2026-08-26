@@ -1,0 +1,9 @@
+templates:
+  readme: |
+    # {repo_name}
+
+    Repository created via automation.
+
+  gitignore: "Python"
+  license: "mit"
+  default_branch: "main"
