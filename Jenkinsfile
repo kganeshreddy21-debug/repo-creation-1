@@ -28,9 +28,9 @@ pipeline {
               sh 'export GITHUB_TOKEN=$(scripts/fetch_vault_secret.sh secret/data/github token)'
             }
           } else {
-            // Use the existing Jenkins credential `github-enterprise-token` (DO NOT print it)
-            withCredentials([string(credentialsId: 'github-enterprise-token', variable: 'GITHUB_TOKEN')]) {
-              echo 'Using Jenkins-stored GitHub Enterprise credential'
+            // Use the existing Jenkins credential `repo-creation` (DO NOT print it)
+            withCredentials([string(credentialsId: 'repo-creation', variable: 'GITHUB_TOKEN')]) {
+              // credential bound to GITHUB_TOKEN for the process; do not echo or log it
             }
           }
 
