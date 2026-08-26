@@ -53,7 +53,8 @@ pipeline {
             }
           }
 
-          def result = readJSON file: 'repo_result.json'
+          def jsonText = readFile('repo_result.json')
+          def result = new groovy.json.JsonSlurper().parseText(jsonText)
           if (result.success) {
             currentBuild.description = "Repo: ${result.repo.html_url}"
             echo "GitHub Repository Created Successfully"
