@@ -56,6 +56,10 @@ pipeline {
               """
             }
           }
+
+          def result = readJSON file: 'repo_result.json'
+          if (result.success) {
+            currentBuild.description = "Repo: ${result.repo.html_url}"
             echo "GitHub Repository Created Successfully"
             echo "Owner: ${result.repo.owner.login}"
             echo "Repository: ${result.repo.name}"
