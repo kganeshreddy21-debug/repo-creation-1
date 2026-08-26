@@ -37,9 +37,12 @@ pipeline {
               python -m pip install --upgrade pip
               python -m pip install -r requirements.txt
               python3 app/create_repo.py --repo-name "${REPO_NAME}" --visibility "${VISIBILITY}" --description "${DESCRIPTION}" ${INITIALIZE_README ? '--init-readme' : ''} --output repo_result.json
-              '''
-            }
-          } else {
+                    python -m pip install --user --upgrade pip
+                    python -m pip install --user -r requirements.txt
+                    python -m venv venv
+                    . venv/bin/activate
+                    python -m pip install -r requirements.txt
+                    python3 app/create_repo.py --repo-name "${REPO_NAME}" --visibility "${VISIBILITY}" --description "${DESCRIPTION}" ${INITIALIZE_README ? '--init-readme' : ''} --output repo_result.json
             // Use the existing Jenkins credential `repo-creation` which may be 'Username with password'.
             // Bind the password field to GITHUB_TOKEN and username to GITHUB_USERNAME (if present).
             withCredentials([usernamePassword(credentialsId: 'repo-creation', usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_TOKEN')]) {
@@ -47,9 +50,12 @@ pipeline {
               python -m pip install --upgrade pip
               python -m pip install -r requirements.txt
               python3 app/create_repo.py --repo-name "${REPO_NAME}" --visibility "${VISIBILITY}" --description "${DESCRIPTION}" ${INITIALIZE_README ? '--init-readme' : ''} --output repo_result.json
-              '''
-            }
-          }
+                    python -m pip install --user --upgrade pip
+                    python -m pip install --user -r requirements.txt
+                    python -m venv venv
+                    . venv/bin/activate
+                    python -m pip install -r requirements.txt
+                    python3 app/create_repo.py --repo-name "${REPO_NAME}" --visibility "${VISIBILITY}" --description "${DESCRIPTION}" ${INITIALIZE_README ? '--init-readme' : ''} --output repo_result.json
 
           def result = readJSON file: 'repo_result.json'
           if (result.success) {
