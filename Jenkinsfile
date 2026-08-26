@@ -24,42 +24,38 @@ pipeline {
             env.GITHUB_API_URL = params.GITHUB_API_URL
           }
 
-          // Retrieve token securely: prefer Jenkins credential `github-enterprise-token` unless Vault is selected
+          // Retrieve token securely and run the create script inside a virtualenv
           if (params.SECRET_STORE == 'VAULT') {
             withCredentials([
               string(credentialsId: 'vault-role-id', variable: 'ROLE_ID'),
               string(credentialsId: 'vault-secret-id', variable: 'SECRET_ID'),
               string(credentialsId: 'vault-addr', variable: 'VAULT_ADDR')
             ]) {
-              sh '''
+              sh """
+              set -euo pipefail
               chmod +x scripts/fetch_vault_secret.sh
               export GITHUB_TOKEN=$(scripts/fetch_vault_secret.sh secret/data/github token)
+              python -m venv venv
+              . venv/bin/activate
               python -m pip install --upgrade pip
               python -m pip install -r requirements.txt
-              python3 app/create_repo.py --repo-name "${REPO_NAME}" --visibility "${VISIBILITY}" --description "${DESCRIPTION}" ${INITIALIZE_README ? '--init-readme' : ''} --output repo_result.json
-                    python -m pip install --user --upgrade pip
-                    python -m pip install --user -r requirements.txt
-                    python -m venv venv
-                    . venv/bin/activate
-                    python -m pip install -r requirements.txt
-                    python3 app/create_repo.py --repo-name "${REPO_NAME}" --visibility "${VISIBILITY}" --description "${DESCRIPTION}" ${INITIALIZE_README ? '--init-readme' : ''} --output repo_result.json
+              python3 app/create_repo.py --repo-name "${params.REPO_NAME}" --visibility "${params.VISIBILITY}" --description "${params.DESCRIPTION}" ${params.INITIALIZE_README ? '--init-readme' : ''} --output repo_result.json
+              """
+            }
+          } else {
             // Use the existing Jenkins credential `repo-creation` which may be 'Username with password'.
             // Bind the password field to GITHUB_TOKEN and username to GITHUB_USERNAME (if present).
             withCredentials([usernamePassword(credentialsId: 'repo-creation', usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_TOKEN')]) {
-              sh '''
+              sh """
+              set -euo pipefail
+              python -m venv venv
+              . venv/bin/activate
               python -m pip install --upgrade pip
               python -m pip install -r requirements.txt
-              python3 app/create_repo.py --repo-name "${REPO_NAME}" --visibility "${VISIBILITY}" --description "${DESCRIPTION}" ${INITIALIZE_README ? '--init-readme' : ''} --output repo_result.json
-                    python -m pip install --user --upgrade pip
-                    python -m pip install --user -r requirements.txt
-                    python -m venv venv
-                    . venv/bin/activate
-                    python -m pip install -r requirements.txt
-                    python3 app/create_repo.py --repo-name "${REPO_NAME}" --visibility "${VISIBILITY}" --description "${DESCRIPTION}" ${INITIALIZE_README ? '--init-readme' : ''} --output repo_result.json
-
-          def result = readJSON file: 'repo_result.json'
-          if (result.success) {
-            currentBuild.description = "Repo: ${result.repo.html_url}"
+              python3 app/create_repo.py --repo-name "${params.REPO_NAME}" --visibility "${params.VISIBILITY}" --description "${params.DESCRIPTION}" ${params.INITIALIZE_README ? '--init-readme' : ''} --output repo_result.json
+              """
+            }
+          }
             echo "GitHub Repository Created Successfully"
             echo "Owner: ${result.repo.owner.login}"
             echo "Repository: ${result.repo.name}"
