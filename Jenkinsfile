@@ -34,7 +34,7 @@ pipeline {
               sh """
               set -euo pipefail
               chmod +x scripts/fetch_vault_secret.sh
-              export GITHUB_TOKEN=$(scripts/fetch_vault_secret.sh secret/data/github token)
+              export GITHUB_TOKEN=\$(scripts/fetch_vault_secret.sh secret/data/github token)
               python -m venv venv
               . venv/bin/activate
               python -m pip install --upgrade pip
