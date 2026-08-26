@@ -1,5 +1,8 @@
 pipeline {
   agent any
+  options {
+    disableConcurrentBuilds()
+  }
   parameters {
     string(name: 'REPO_NAME', description: 'Repository name')
     choice(name: 'VISIBILITY', choices: ['private','public'], description: 'Visibility')
@@ -35,10 +38,8 @@ pipeline {
             }
           }
 
-          // Run creation inside a lock to prevent concurrent creates of same repo name
-          lock(resource: "repo-${REPO_NAME}") {
-            sh "python3 app/create_repo.py --repo-name \"${REPO_NAME}\" --visibility \"${VISIBILITY}\" --description \"${DESCRIPTION}\" ${INITIALIZE_README ? '--init-readme' : ''} --output repo_result.json"
-          }
+          // Run creation (concurrent builds are disabled at the job level)
+          sh "python3 app/create_repo.py --repo-name \"${REPO_NAME}\" --visibility \"${VISIBILITY}\" --description \"${DESCRIPTION}\" ${INITIALIZE_README ? '--init-readme' : ''} --output repo_result.json"
 
           def result = readJSON file: 'repo_result.json'
           if (result.success) {
