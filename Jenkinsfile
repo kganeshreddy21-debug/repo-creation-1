@@ -12,17 +12,13 @@ pipeline {
     choice(name: 'VISIBILITY', choices: ['private','public'], description: 'Visibility')
     string(name: 'DESCRIPTION', description: 'Repository description', defaultValue: '')
     booleanParam(name: 'INITIALIZE_README', defaultValue: true, description: 'Initialize with README')
-    string(name: 'GITHUB_API_URL', defaultValue: '', description: 'GitHub Enterprise API URL (e.g. https://github.example.com/api/v3)')
     choice(name: 'SECRET_STORE', choices: ['JENKINS','VAULT'], description: 'Where to read GitHub credentials from')
   }
   stages {
     stage('Create Repository') {
       steps {
         script {
-          // Export GITHUB_API_URL to environment if provided
-          if (params.GITHUB_API_URL?.trim()) {
-            env.GITHUB_API_URL = params.GITHUB_API_URL
-          }
+          // (removed GITHUB_API_URL parameter — not required)
 
           // Retrieve token securely and run the create script inside a virtualenv
           if (params.SECRET_STORE == 'VAULT') {
