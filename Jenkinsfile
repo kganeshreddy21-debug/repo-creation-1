@@ -35,7 +35,7 @@ pipeline {
               . venv/bin/activate
               python -m pip install --upgrade pip
               python -m pip install -r requirements.txt
-              python3 app/create_repo.py --repo-name "${params.REPO_NAME}" --visibility "${params.VISIBILITY}" --description "${params.DESCRIPTION}" ${params.INITIALIZE_README ? '--init-readme' : ''} --output repo_result.json
+              python -m app.create_repo --repo-name "${params.REPO_NAME}" --visibility "${params.VISIBILITY}" --description "${params.DESCRIPTION}" ${params.INITIALIZE_README ? '--init-readme' : ''} --output repo_result.json
               """
             }
           } else {
@@ -48,7 +48,7 @@ pipeline {
               . venv/bin/activate
               python -m pip install --upgrade pip
               python -m pip install -r requirements.txt
-              python3 app/create_repo.py --repo-name "${params.REPO_NAME}" --visibility "${params.VISIBILITY}" --description "${params.DESCRIPTION}" ${params.INITIALIZE_README ? '--init-readme' : ''} --output repo_result.json
+              python -m app.create_repo --repo-name "${params.REPO_NAME}" --visibility "${params.VISIBILITY}" --description "${params.DESCRIPTION}" ${params.INITIALIZE_README ? '--init-readme' : ''} --output repo_result.json
               """
             }
           }
