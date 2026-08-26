@@ -1,5 +1,9 @@
 pipeline {
-  agent any
+  agent {
+    docker {
+      image 'python:3.11-slim'
+    }
+  }
   options {
     disableConcurrentBuilds()
   }
@@ -27,19 +31,25 @@ pipeline {
               string(credentialsId: 'vault-secret-id', variable: 'SECRET_ID'),
               string(credentialsId: 'vault-addr', variable: 'VAULT_ADDR')
             ]) {
-              sh 'chmod +x scripts/fetch_vault_secret.sh'
-              sh 'export GITHUB_TOKEN=$(scripts/fetch_vault_secret.sh secret/data/github token)'
+              sh '''
+              chmod +x scripts/fetch_vault_secret.sh
+              export GITHUB_TOKEN=$(scripts/fetch_vault_secret.sh secret/data/github token)
+              python -m pip install --upgrade pip
+              python -m pip install -r requirements.txt
+              python3 app/create_repo.py --repo-name "${REPO_NAME}" --visibility "${VISIBILITY}" --description "${DESCRIPTION}" ${INITIALIZE_README ? '--init-readme' : ''} --output repo_result.json
+              '''
             }
           } else {
             // Use the existing Jenkins credential `repo-creation` which may be 'Username with password'.
             // Bind the password field to GITHUB_TOKEN and username to GITHUB_USERNAME (if present).
             withCredentials([usernamePassword(credentialsId: 'repo-creation', usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_TOKEN')]) {
-              // GITHUB_TOKEN and GITHUB_USERNAME are available to the process. Do NOT echo or log them.
+              sh '''
+              python -m pip install --upgrade pip
+              python -m pip install -r requirements.txt
+              python3 app/create_repo.py --repo-name "${REPO_NAME}" --visibility "${VISIBILITY}" --description "${DESCRIPTION}" ${INITIALIZE_README ? '--init-readme' : ''} --output repo_result.json
+              '''
             }
           }
-
-          // Run creation (concurrent builds are disabled at the job level)
-          sh "python3 app/create_repo.py --repo-name \"${REPO_NAME}\" --visibility \"${VISIBILITY}\" --description \"${DESCRIPTION}\" ${INITIALIZE_README ? '--init-readme' : ''} --output repo_result.json"
 
           def result = readJSON file: 'repo_result.json'
           if (result.success) {
